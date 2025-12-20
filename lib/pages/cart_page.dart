@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'cart.dart';
 import 'order_service.dart';
+import 'payment_method_sheet.dart'; // Ensure this is imported
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -10,6 +11,50 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
+  // Logic to process order after payment method is chosen
+  Future<void> _processOrder(String method) async {
+    final items = CartManager.items;
+    final orders = OrderService();
+
+    final orderItems = items
+        .map(
+          (item) => {
+            'id': item.name,
+            'name': item.name,
+            'qty': 1,
+            'price': item.price,
+          },
+        )
+        .toList();
+
+    final subtotal = CartManager.total;
+    final tax = subtotal * 0.06;
+    final total = subtotal + tax;
+
+    try {
+      final orderId = await orders.createOrder(
+        userId: "test-user",
+        items: orderItems,
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
+        paymentMethod: method, // Added based on your Service update
+      );
+
+      setState(() {
+        CartManager.checkout();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("✅ Order ($method) placed: $orderId")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("❌ Failed to place order: $e")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = CartManager.items;
@@ -69,53 +114,26 @@ class _CartPageState extends State<CartPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () async {
+                onPressed: () {
                   if (items.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text("Cart is empty")),
                     );
                   } else {
-                    final orders = OrderService();
-
-                    // Convert cart items to Firestore-friendly maps
-                    final orderItems = items
-                        .map(
-                          (item) => {
-                            'id': item
-                                .name, // CartItem has no id; use name as fallback
-                            'name': item.name,
-                            'qty': 1, // quantity not tracked yet; default to 1
-                            'price': item.price,
-                          },
-                        )
-                        .toList();
-
-                    final subtotal = CartManager.total;
-                    final tax = subtotal * 0.06; // example 6% tax
-                    final total = subtotal + tax;
-
-                    try {
-                      final orderId = await orders.createOrder(
-                        userId:
-                            "test-user", // replace with Firebase Auth UID later
-                        items: orderItems,
-                        subtotal: subtotal,
-                        tax: tax,
-                        total: total,
-                      );
-
-                      setState(() {
-                        CartManager.checkout(); // clear cart
-                      });
-
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("✅ Order placed: $orderId")),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("❌ Failed to place order: $e")),
-                      );
-                    }
+                    // Trigger the payment sheet instead of direct checkout
+                    showModalBottomSheet(
+                      context: context,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(20),
+                        ),
+                      ),
+                      builder: (context) => PaymentMethodSheet(
+                        onMethodSelected: (String chosenMethod) {
+                          _processOrder(chosenMethod);
+                        },
+                      ),
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(

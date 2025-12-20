@@ -10,6 +10,7 @@ class OrderService {
     required double subtotal,
     required double tax,
     required double total,
+    required String paymentMethod, // 1. Added this parameter
   }) async {
     final docRef = await _db.collection('orders').add({
       'userId': userId,
@@ -17,6 +18,7 @@ class OrderService {
       'subtotal': subtotal,
       'tax': tax,
       'total': total,
+      'paymentMethod': paymentMethod, // 2. Saving it to Firestore here
       'status': 'placed',
       'createdAt': FieldValue.serverTimestamp(),
     });
