@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "385091224716",
+    "project_id": "blackcabin",
+    "storage_bucket": "blackcabin.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:385091224716:android:9863b141f62e85254267a9",
+        "android_client_info": {
+          "package_name": "com.example.blackcabin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAFncZ9hykK2sKxYuirmI9neyuHSKSJRQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
