@@ -10,8 +10,13 @@ class Order {
   final List<CartItem> items;
   final double total;
   final DateTime date;
-
-  Order({required this.items, required this.total, required this.date});
+  final String? status;
+  Order({
+    required this.items,
+    required this.total,
+    required this.date,
+    this.status,
+  });
 }
 
 class CartManager {
@@ -43,7 +48,12 @@ class CartManager {
   static void checkout() {
     if (_items.isNotEmpty) {
       _orders.add(
-        Order(items: List.from(_items), total: total, date: DateTime.now()),
+        Order(
+          items: List.from(_items),
+          total: total,
+          date: DateTime.now(),
+          status: "Pending",
+        ),
       );
       clear();
     }

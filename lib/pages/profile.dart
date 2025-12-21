@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'onboarding.dart';
 import 'edit_profile_page.dart';
+import 'admin_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -11,13 +12,13 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String _name = "Aveenath"; // default name
-  final String _email = "aveenath@gmail.com"; // default email
+  String _name = "Aveenath";
+  final String _email = "aveenath@gmail.com";
 
   @override
   void initState() {
     super.initState();
-    _loadName(); // load saved name when page starts
+    _loadName();
   }
 
   Future<void> _loadName() async {
@@ -25,6 +26,57 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {
       _name = prefs.getString("profile_name") ?? "Aveenath";
     });
+  }
+
+  // --- NEW: Admin Login Dialog Logic ---
+  void _showAdminAuthDialog() {
+    final TextEditingController passwordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Admin Login"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Please enter the admin password to continue."),
+            const SizedBox(height: 15),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "Password",
+                prefixIcon: Icon(Icons.lock),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("CANCEL"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Replace 'admin123' with your preferred secret password
+              if (passwordController.text == "admin123") {
+                Navigator.pop(context); // Close dialog
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AdminPage()),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Incorrect Admin Password!")),
+                );
+              }
+            },
+            child: const Text("LOGIN"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -46,24 +98,35 @@ class _ProfilePageState extends State<ProfilePage> {
               backgroundImage: AssetImage("images/profile.png"),
             ),
             const SizedBox(height: 16),
-
-            // Dynamic name
             Text(
               _name,
-              textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-
-            // Dynamic email
             Text(
               _email,
-              textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 20),
 
-            // Edit Profile
+            // --- UPDATED ADMIN TILE ---
+            if (_email == "aveenath@gmail.com")
+              ListTile(
+                leading: const Icon(
+                  Icons.admin_panel_settings,
+                  color: Colors.redAccent,
+                ),
+                title: const Text(
+                  "Admin Dashboard",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: const Text("Manage orders and verify payments"),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: _showAdminAuthDialog, // Triggers the password dialog
+              ),
+
+            const Divider(),
+
             ListTile(
               leading: const Icon(Icons.edit, color: Colors.blue),
               title: const Text("Edit Profile"),
@@ -81,8 +144,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 }
               },
             ),
-
-            // Settings
             ListTile(
               leading: const Icon(Icons.settings, color: Colors.green),
               title: const Text("Settings"),
@@ -92,8 +153,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 );
               },
             ),
-
-            // Logout
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.red),
               title: const Text("Logout"),
